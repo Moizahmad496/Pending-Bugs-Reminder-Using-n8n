@@ -1,0 +1,144 @@
+{
+  "name": "Pending Bugs Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1744,
+        16
+      ],
+      "id": "a438aca9-841c-4c6b-b48b-2836872f5462",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1jS-c2FqIzmflVGCZ0LUAcG7nvhAaFXwKynuBMPSuySs",
+          "mode": "list",
+          "cachedResultName": "QA Report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jS-c2FqIzmflVGCZ0LUAcG7nvhAaFXwKynuBMPSuySs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1057001499,
+          "mode": "list",
+          "cachedResultName": "CMS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jS-c2FqIzmflVGCZ0LUAcG7nvhAaFXwKynuBMPSuySs/edit#gid=1057001499"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1504,
+        16
+      ],
+      "id": "34da68ac-c15f-43a7-a024-62d20dac93f3",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "h8zjmbzxzlqPV2hi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter items for reminders:\n// Send reminder if (Status == 'Not started') OR (QA == 'Rework')\n\nreturn items.filter(item => {\n  const status = (item.json[\"Status\"] || '').trim().toLowerCase();\n  const qa = (item.json[\"QA\"] || '').trim().toLowerCase();\n\n  // Match either condition\n  const shouldRemind =\n    status === 'not started' ||\n    qa === 'rework';\n\n  // Must have an assignee\n  const assignee = (item.json[\"Assign to\"] || '').trim();\n  return shouldRemind && assignee !== '';\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        16
+      ],
+      "id": "1a15a7fb-56e3-4901-a8c6-68cf82c6b08a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "fazal@fidsor.net",
+        "subject": "Pending Bugs Reminder",
+        "message": "={{\n`<div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6;\">\n  <h2 style=\"color:#1e3a8a;\">🪲 Pending & Rework Bug Reminder for KAPL CMS</h2>\n  <p><b>Hi Team,</b></p>\n  <p>This is a friendly reminder about the following bugs that are still <strong>pending</strong> or marked for <strong>rework</strong>:</p>\n\n  <ul style=\"padding-left:20px;\">\n    ${\n      $input.all().map(item => {\n        const bug = item.json;\n        return `\n          <li style=\"margin-bottom:8px;\">\n            <strong>Bug #${bug[\"#Bug ID\"]}:</strong> ${bug.Task}\n          </li>\n        `;\n      }).join('')\n    }\n  </ul>\n\n  <p>Please review these tasks and update their status accordingly.</p>\n\n  <p style=\"margin-top:20px;\">\n    Best regards,<br>\n    <strong>Moiz Ahmad <br> QA Engineer @ Fidsor</strong><br>\n  </p>\n</div>`\n}}\n",
+        "options": {
+          "bccList": "khadeeja@fidsor.net",
+          "ccList": "tehreem@fidsor.net  "
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1040,
+        16
+      ],
+      "id": "80d334df-32aa-4381-a5f1-1c4be3e48266",
+      "name": "Send a message",
+      "webhookId": "25bba322-a24f-428e-9692-fce780f78ff6",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TiZB8z5wmRjkLYIQ",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7a53755a-1c48-4d55-aaa4-ca133a4f61e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "844c34d6ddc9d810f2787b603be96afbee7178c4e7b0be793a3837f3efa86076"
+  },
+  "id": "KCTToY3U0Unf79DW",
+  "tags": []
+}
